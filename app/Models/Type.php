@@ -9,6 +9,8 @@ class Type extends Model
 {
     use HasFactory;
 
+    protected $guarded = ['slug'];
+
     public function posts()
     {
         return $this->hasMany(Post::class);

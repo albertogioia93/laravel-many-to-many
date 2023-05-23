@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Technology extends Model
 {
     use HasFactory;
+
+    protected $guarded = ['slug'];
+
+    public function posts(){
+        return $this->belongsToMany(Post::class);
+    }
 }

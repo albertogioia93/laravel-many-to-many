@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePostRequest extends FormRequest
 {
@@ -30,7 +31,10 @@ class UpdatePostRequest extends FormRequest
                 'string',
                 'max:150'
             ],
-            'content' => 'nullable|string'
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
+            'set_image' => 'boolean',
+            'tags' => 'nullable|exists:tags,id'
         ];
     }
 }

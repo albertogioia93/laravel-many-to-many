@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
-use App\Models\Type;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Models\Type;
+use App\Models\Post;
+use App\Models\Technology;
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Str;
 
 class PostController extends Controller
@@ -33,7 +33,8 @@ class PostController extends Controller
     public function create()
     {
         $types = Type::all();
-        return view('admin.posts.create', compact('types'));
+        $technologies = Technology::all();
+        return view('admin.posts.create', compact('types', 'technologies'));
     }
 
     /**
@@ -54,7 +55,13 @@ class PostController extends Controller
             $post->image = Storage::put('uploads', $data['image']);
         }
 
+        $post->slug =  Str::slug($data['title']);
+
         $post->save();
+
+        if(isset($data['technologies'])){
+            $post->technologies()->sync($data['technologies']);
+        }
 
         return redirect()->route('admin.posts.index')->with('message', 'Post creato con successo');
     }
@@ -80,7 +87,9 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        return view('admin.posts.edit', compact('post'));
+        $types = Type::all();
+        $technologies = Technology::all();
+        return view('admin.posts.edit', compact('post', 'types', 'technologies'));
     }
 
     /**
@@ -93,9 +102,31 @@ class PostController extends Controller
     public function update(UpdatePostRequest $request, Post $post)
     {
         $data = $request->validated();
-        $post->update($data);
+        // $post->update($data);
         $post->slug = Str::slug($data['title'], '-');
-        $post->save();
+
+        if(empty($data['set_image'])){
+            if($post->image){
+                Storage::delete($post->image);
+                $post->image = null;
+            }
+
+        } else {
+            if (isset($data['image'])) {
+
+                if($post->image){
+                    Storage::delete($post->image);
+                }
+
+                $post->image = Storage::put('uploads', $data['image']);
+            }
+        }
+
+        $technologies = isset($data['technologies']) ? $data['technologies'] : [];
+        $post->technologies()->sync($technologies);
+        // $post->save();
+
+        $post->update($data);
 
         return redirect()->route('admin.posts.index')->with('message', "Post $post->id aggiornato con successo");
     }
@@ -109,6 +140,11 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         $old_id = $post->id;
+
+        if($post->image){
+            Storage::delete($post->image);
+        }
+        
         $post->delete();
         
         return redirect()->route('admin.posts.index')->with('message', "Post $old_id eliminato con successo");

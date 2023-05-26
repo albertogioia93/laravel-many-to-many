@@ -43,7 +43,7 @@
         </div>
         @else
         <div class="mb-3">
-            <div class="mb-3">Tags</div>
+            <div class="mb-3">Technologies</div>
 
             @foreach ($technologies as $technology)
                 <div class="form-check form-check-inline">
